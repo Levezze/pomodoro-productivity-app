@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Button } from './ui/Button'
-import './App.css'
-// import { Timer } from './components/Timer'
+// import './App.css'
 import { PomodoroTimer } from './components/PomodoroTimer'
 
 function App() {

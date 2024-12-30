@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { timeInMilisec } from "../utils/timeInMils";
 import { Button } from "../ui/Button";
+import Alert from "react-bootstrap/Alert";
 
 export function PomodoroTimer() {
   const defaultTimer = 25;
@@ -8,9 +9,10 @@ export function PomodoroTimer() {
   const timeRef = useRef();
   const breakRef = useRef();
   const [timer, setTimer] = useState(timeInMilisec(defaultTimer));
-  const [timerBreak, setTimerBreak] = useState(defaultBreak);
+  const [timerBreak, setTimerBreak] = useState(timeInMilisec(defaultBreak));
   const [isRunning, setIsRunning] = useState(false);
   const [isBreak, setIsBreak] = useState(false);
+  const [breakDone, setBreakDone] = useState(false);
   const [cycles, setCycles] = useState(0);
 
   useEffect(()=> {
@@ -21,26 +23,29 @@ export function PomodoroTimer() {
       }, 100);
     } else if (timer <= 0) {
       clearInterval(interval);
-      setIsRunning(false);
       setIsBreak(true);
-      setCycles(prev => prev + 1)
-      console.log(`Learning cycles completed: ${cycles+1}`)
+      // setCycles(prev => prev + 1)
+      // console.log(`Learning cycles completed: ${cycles+1}`)
     }
     return () => clearInterval(interval);
   }, [isRunning, timer])
 
   useEffect(()=> {
     let interval;
-    if (isBreak && timerBreak) {
+    if (isRunning && isBreak && timerBreak) {
       interval = setInterval(() => {
         setTimerBreak((prev) => prev - 1000);
       }, 100);
     } else if (timerBreak <= 0) {
       clearInterval(interval);
+      setIsRunning(false);
       setIsBreak(false);
+      setTimerBreak(timeInMilisec(breakRef.current.value));
+      setTimer(timeInMilisec(timeRef.current.value));
+      setBreakDone(true);
     }
     return () => clearInterval(interval);
-  }, [isRunning, timer])
+  }, [isRunning, isBreak, timerBreak])
   
   const clock = (time) => {
     const timeInSeconds = time / 1000;
@@ -64,16 +69,32 @@ export function PomodoroTimer() {
   const pauseButton = (
     <Button 
       buttonText={"Pause"} 
-      handleClick={() => isRunning ? setIsRunning(false) : setIsBreak(false)} 
+      handleClick={() => setIsRunning(false)} 
     />
   );
 
+  let breakOverAlert;
+  if (breakDone) {
+    breakOverAlert = (
+      <Alert variant="danger" onClose={() => setBreakDone(false)} dismissible>
+        <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+        <p>
+          Change this and that and try again. Duis mollis, est non commodo
+          luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.
+          Cras mattis consectetur purus sit amet fermentum.
+        </p>
+      </Alert>
+    )
+  } else {
+    breakOverAlert = <></>
+  }
+  
   return (
     <>
       <h1>Pomodoro Timer</h1>
       <h2>Set times</h2>
       <div className="PomodoroTimer">
-        <div className="Timer setTimes">
+        <div className="Timer set-times">
           <form id="setTimerForm" onSubmit={(e) => handleSubmit(e, setTimer, timeRef)}>
             <label htmlFor="pomodoroSetTimer"></label>
             <input 
@@ -98,14 +119,19 @@ export function PomodoroTimer() {
             <button type="submit">Set Break</button>
           </form>
         </div>
+
+        <div className="alert">
+          {breakOverAlert}
+        </div>
+
         <div className="Timer countdown">
-          <h2>{isRunning ? "Study!" : "Break"}</h2>
+          <h2>{isBreak ? "Break" : "Study!"}</h2>
           <h3>{isBreak ? clock(timerBreak) : clock(timer)}</h3>
         </div>
         <div className='timer controls'>
           <h3>Controls</h3>
           <div className='buttons'>
-            {(isRunning && !isBreak) ? pauseButton : startButton}
+            {(isRunning) ? pauseButton : startButton}
             <Button 
               buttonText={"Reset"} 
               handleClick={() => {
