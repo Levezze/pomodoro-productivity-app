@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Button } from './ui/Button'
 import './App.css'
-import { Timer } from './components/Timer'
+// import { Timer } from './components/Timer'
+import { PomodoroTimer } from './components/PomodoroTimer'
 
 function App() {
   const [loggedIn, setLoggedIn] = useState(false)
@@ -30,7 +31,8 @@ function App() {
         {loggedIn ? startButton : loginButton}
       </section>
       <section className='container pomodoro'>
-        <Timer />
+        {/* <Timer /> */}
+        <PomodoroTimer />
       </section>
     </main>
   )
