@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from "react";
 import { timeInMilisec } from "../utils/timeInMils";
 import { Button } from "../ui/Button";
 import Alert from "react-bootstrap/Alert";
+import useSound from "use-sound";
+// import endSession from '../../resources/sounds/end-session.mp3'
 
 export function PomodoroTimer() {
   const defaultTimer = 25;
@@ -14,16 +16,18 @@ export function PomodoroTimer() {
   const [isBreak, setIsBreak] = useState(false);
   const [breakDone, setBreakDone] = useState(false);
   const [cycles, setCycles] = useState(0);
+  const [playSound] = useSound('../../resources/sounds/end-session.mp3', {volume: 1,});
 
   useEffect(()=> {
     let interval;
     if (isRunning && timer) {
       interval = setInterval(() => {
         setTimer((prev) => prev - 1000);
-      }, 100);
+      }, 1000);
     } else if (timer <= 0) {
       clearInterval(interval);
       setIsBreak(true);
+      playSound();
       // setCycles(prev => prev + 1)
       // console.log(`Learning cycles completed: ${cycles+1}`)
     }
@@ -35,7 +39,7 @@ export function PomodoroTimer() {
     if (isRunning && isBreak && timerBreak) {
       interval = setInterval(() => {
         setTimerBreak((prev) => prev - 1000);
-      }, 100);
+      }, 1000);
     } else if (timerBreak <= 0) {
       clearInterval(interval);
       setIsRunning(false);
@@ -43,6 +47,7 @@ export function PomodoroTimer() {
       setTimerBreak(timeInMilisec(breakRef.current.value));
       setTimer(timeInMilisec(timeRef.current.value));
       setBreakDone(true);
+      playSound();
     }
     return () => clearInterval(interval);
   }, [isRunning, isBreak, timerBreak])
@@ -77,11 +82,9 @@ export function PomodoroTimer() {
   if (breakDone) {
     breakOverAlert = (
       <Alert variant="danger" onClose={() => setBreakDone(false)} dismissible>
-        <Alert.Heading>Oh snap! You got an error!</Alert.Heading>
+        <Alert.Heading>Break is over</Alert.Heading>
         <p>
-          Change this and that and try again. Duis mollis, est non commodo
-          luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit.
-          Cras mattis consectetur purus sit amet fermentum.
+          Press Start to begin another session.
         </p>
       </Alert>
     )
